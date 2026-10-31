@@ -24,11 +24,11 @@ Raw data is stored under `data/` and is excluded from Git (see `.gitignore`).
 
 | File | Size | Rows |
 |---|---|---|
-| Merged01.csv | TODO | TODO |
-| Merged15.csv | TODO | TODO |
-| Merged30.csv | TODO | TODO |
-| Merged45.csv | TODO | TODO |
-| Merged63.csv | TODO | TODO |
+| Merged01.csv | 141 MB | TODO |
+| Merged15.csv | 142 MB | TODO |
+| Merged30.csv | 138 MB | TODO |
+| Merged45.csv | 133 MB | TODO |
+| Merged63.csv | 85 MB | TODO |
 
 Files were chosen from across the range so the sample is not limited to one section of the capture. Remaining files will be added later for the scalability tests.
 
@@ -57,15 +57,15 @@ E. C. P. Neto, S. Dadkhah, R. Ferreira, A. Zohourian, R. Lu, A. A. Ghorbani, "CI
 
 | File | Purpose | Size | Rows |
 |---|---|---|---|
-| UNSW-NB15_1.csv | Full data, part 1 | TODO | TODO |
-| UNSW-NB15_2.csv | Full data, part 2 | TODO | TODO |
-| UNSW-NB15_3.csv | Full data, part 3 | TODO | TODO |
-| UNSW-NB15_4.csv | Full data, part 4 | TODO | TODO |
-| UNSW-NB15_features.csv | Column names and descriptions | TODO | TODO |
-| UNSW_NB15_training-set.csv | Predefined training split | TODO | TODO |
-| UNSW_NB15_testing-set.csv | Predefined testing split | TODO | TODO |
+| UNSW-NB15_1.csv | Full data, part 1 | 162 MB | TODO |
+| UNSW-NB15_2.csv | Full data, part 2 | 158 MB | TODO |
+| UNSW-NB15_3.csv | Full data, part 3 | 148 MB | TODO |
+| UNSW-NB15_4.csv | Full data, part 4 | 94 MB | TODO |
+| NUSW-NB15_features.csv | Column names and descriptions (the official file name has this spelling) | 4 KB | TODO |
+| UNSW_NB15_training-set.csv | Predefined training split | 14 MB | TODO |
+| UNSW_NB15_testing-set.csv | Predefined testing split | 15 MB | TODO |
 
-Note: the four full CSV files have no header row. Column names come from `UNSW-NB15_features.csv`.
+Note: the four full CSV files have no header row. Column names come from `NUSW-NB15_features.csv`.
 
 ### Citation
 
