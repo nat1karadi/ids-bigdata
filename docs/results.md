@@ -78,24 +78,60 @@ Balanced accuracy / AUC on the cross-dataset tests (0.5 is chance for both):
 
 Within-dataset results for the same runs stay stable: balanced accuracy 0.96 to 0.98 on CICIoT2023 (AUC about 0.98 to 0.99) and 0.75 to 0.80 on UNSW-NB15 (AUC 0.85 to 0.93).
 
+## Experiment C: three seeds, joint training and multiclass
+
+Script: `src/experiment_c.py`, raw results in HDFS `/ids/results/experiment_c`. Random Forest (30 trees, depth 8), all 5 features. The seed changes the CICIoT2023 70/30 split and the undersampling. Values are mean and standard deviation over 3 seeds.
+
+Binary task, balanced accuracy and AUC:
+
+| Preprocessing | Within CIC | Within UNSW | UNSW to CIC | CIC to UNSW |
+|---|---|---|---|---|
+| naive, balanced accuracy | 0.976 +/- 0.000 | 0.783 +/- 0.011 | 0.495 +/- 0.042 | 0.441 +/- 0.008 |
+| naive, AUC | 0.989 | 0.928 | 0.149 +/- 0.071 | 0.426 +/- 0.030 |
+| log + standardise, balanced accuracy | 0.976 +/- 0.000 | 0.788 +/- 0.002 | 0.484 +/- 0.036 | 0.476 +/- 0.002 |
+| log + standardise, AUC | 0.989 | 0.924 | 0.513 +/- 0.393 | 0.598 +/- 0.089 |
+
+Joint training (one model trained on both datasets, log + standardise), tested on each test set:
+
+| Test set | Balanced accuracy | AUC | Within-dataset model for comparison |
+|---|---|---|---|
+| CICIoT2023 | 0.974 +/- 0.000 | 0.989 | 0.976 |
+| UNSW-NB15 | 0.783 +/- 0.005 | 0.902 | 0.788 |
+
+Multiclass on the shared classes (BENIGN, DOS_DDOS, RECON), log + standardise. Chance level for macro recall is 0.333.
+
+| Setup | Macro recall | Benign recall | DoS/DDoS recall | Recon recall | Macro-F1 |
+|---|---|---|---|---|---|
+| Within CIC | 0.816 +/- 0.001 | 0.646 | 0.983 | 0.820 | 0.752 |
+| Within UNSW | 0.841 +/- 0.003 | 0.733 | 0.918 | 0.874 | 0.608 |
+| UNSW to CIC | 0.387 +/- 0.085 | 0.163 +/- 0.260 | 0.998 | 0.000 | 0.385 |
+| CIC to UNSW | 0.377 +/- 0.003 | 0.019 | 0.356 | 0.755 | 0.117 |
+
+Observations:
+- Naive UNSW to CIC has an AUC of 0.149 +/- 0.071 (seeds: 0.194, 0.068, 0.186). The ranking is consistently reversed, which fits the inverted feature relationships shown above.
+- The log + standardise UNSW to CIC AUC varies enormously between seeds (0.878, 0.098, 0.563). The 0.772 seen in Experiment B was one such draw and is not evidence of transfer.
+- A jointly trained model matches the within-dataset models on both test sets. A single model can serve both datasets when it has seen both. This does not show generalisation to an unseen dataset.
+- Multiclass cross-dataset models collapse to one class (DoS/DDoS for UNSW to CIC, mostly recon for CIC to UNSW), with macro recall close to chance.
+
 ## Findings
 
 1. Within-dataset detection works with only the five shared features (RF balanced accuracy 0.98 on CICIoT2023, 0.79 to 0.81 on UNSW-NB15).
 2. Cross-dataset detection does not work. Balanced accuracy is at chance or below (0.17 to 0.57) and models mostly answer "attack".
 3. The failure is explained by inverted feature-to-label relationships (table above), not by a scale difference alone. Log transforms, per-dataset standardisation and rank normalisation did not fix it.
-4. The only cross-dataset result with AUC clearly above 0.5 (0.772, UNSW to CIC, all features, log + standardise) is not stable. Removing any single feature, or switching to rank normalisation, drops it to 0.17 to 0.57. It should not be presented as evidence of transfer.
+4. The one cross-dataset result with AUC clearly above 0.5 in Experiment B (0.772, UNSW to CIC, all features, log + standardise) is not stable. Across three seeds the same configuration gives AUC 0.878, 0.098 and 0.563. Dropping any single feature or switching to rank normalisation also removes it. It is not evidence of transfer.
 5. The best balanced accuracy in the ablation is 0.567 (CIC to UNSW, log + standardise, without `rate`), which is only slightly above chance.
+6. Training one model on both datasets removes the gap on the tests it has seen (balanced accuracy 0.974 and 0.783), so the datasets are compatible when the model sees both but not when it must transfer.
+7. The multiclass task on the shared classes fails the same way across datasets (macro recall 0.38 to 0.39 against a chance level of 0.33).
 
 ## Limitations
 
 - CICIoT2023 within-dataset results use a random split of windows from the same captures, so they are probably optimistic.
-- Each configuration was run once with one random seed. Repeat key configurations with several seeds and report mean and standard deviation.
+- Experiments A and B used one random seed per configuration. Experiment C repeats the key configurations over 3 seeds. Seeds vary only the CICIoT2023 split and the undersampling, so the standard deviations understate other sources of variation.
 - Only 5 features could be shared. CICIoT2023 features describe windows of packets, while UNSW-NB15 features describe whole flows.
 - The CICIoT2023 sample is 5 of 63 files (3.2 million raw rows).
 - 4.7% of UNSW-NB15 rows have a feature vector that appears with both labels, which limits within-dataset accuracy on UNSW-NB15.
 
 ## Possible next experiments
 
-1. Multiclass on shared classes (BENIGN, DOS_DDOS, RECON), and a jointly trained model evaluated on both test sets.
+1. Few-shot adaptation: add a small labelled sample of the target dataset to the training data and measure how many labelled rows are needed to close the gap.
 2. Aggregate UNSW-NB15 flows into packet windows (using source address and time in the raw files) so both datasets describe the same unit of observation.
-3. Repeat the key runs with several seeds.
