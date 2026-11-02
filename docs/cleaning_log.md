@@ -39,7 +39,8 @@ Output paths: `/ids/clean/ciciot2023`, `/ids/clean/unsw_train`, `/ids/clean/unsw
 - The datasets have very different base rates: about 4% benign in CICIoT2023 against 48% to 61% normal in UNSW-NB15. Accuracy alone is not a meaningful metric. Use macro-F1, per-class precision and recall, and balanced sampling or class weights.
 - Removing duplicates before splitting avoids identical rows appearing in both training and test data.
 
-## To check
+## Corrections and follow-up checks (1 November 2026)
 
-- Overlap of identical rows between the UNSW training and testing sets (possible leakage).
-- Identical feature vectors that carry different labels in CICIoT2023.
+- The infinite-value filter in `clean_ciciot.py` did not remove every infinite `rate` value. 16 further CICIoT2023 rows with non-finite values were removed in `src/harmonise.py`, using a direct comparison filter.
+- Identical rows shared between the UNSW training and testing sets: 940. They were removed from the testing set in `src/harmonise.py`.
+- CICIoT2023 feature vectors (all 39 features) carrying more than one raw label: 82,420. Most are likely near-identical variants of the same attack type, which merge under the unified labels. After mapping to unified classes and keeping the 5 shared features, only 966 rows lie in vectors with both benign and attack labels.

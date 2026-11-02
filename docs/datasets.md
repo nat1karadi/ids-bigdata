@@ -15,7 +15,7 @@ Raw data is stored under `data/` and is excluded from Git (see `.gitignore`).
 | Publisher | Canadian Institute for Cybersecurity (CIC), University of New Brunswick |
 | Source | https://www.cicresearch.ca/IOTDataset/CIC_IOT_Dataset2023/ (folder `CSV/MERGED_CSV`) |
 | Format used | Flow-based CSV (merged version). Raw PCAP files not used |
-| Full dataset size | 63 files (`Merged01.csv` to `Merged63.csv`), about 46.7 million flow records, 47 columns (46 features plus label) |
+| Full dataset size | 63 files (`Merged01.csv` to `Merged63.csv`). The paper describes about 46.7 million records. The merged CSV files have 40 columns (39 features plus `Label`) |
 | Content | 105 IoT devices, 33 attacks grouped into 7 classes (DDoS, DoS, Recon, Web-based, Brute Force, Spoofing, Mirai) plus benign traffic |
 | Local path | `data/ciciot2023/` |
 | Licence / use | Academic research use. Cite the paper below |
@@ -29,6 +29,8 @@ Raw data is stored under `data/` and is excluded from Git (see `.gitignore`).
 | Merged30.csv | 138 MB | TODO |
 | Merged45.csv | 133 MB | TODO |
 | Merged63.csv | 85 MB | TODO |
+
+Combined development sample: 3,228,175 rows, 40 columns, all 34 labels present (checked with Spark on 1 November 2026).
 
 Files were chosen from across the range so the sample is not limited to one section of the capture. Remaining files will be added later for the scalability tests.
 
@@ -49,7 +51,7 @@ E. C. P. Neto, S. Dadkhah, R. Ferreira, A. Zohourian, R. Lu, A. A. Ghorbani, "CI
 | Format used | CSV files. PCAP, Bro and Argus files not used |
 | Full dataset size | 2,540,044 records in four CSV files, 49 features including the label |
 | Content | Normal traffic plus nine attack types (Fuzzers, Analysis, Backdoors, DoS, Exploits, Generic, Reconnaissance, Shellcode, Worms) |
-| Predefined split | Training set 175,341 records, testing set 82,332 records |
+| Predefined split | Published sizes: training set 175,341 records, testing set 82,332 records |
 | Local path | `data/unsw/` |
 | Licence / use | Free for academic research. Cite the papers below |
 
@@ -64,6 +66,8 @@ E. C. P. Neto, S. Dadkhah, R. Ferreira, A. Zohourian, R. Lu, A. A. Ghorbani, "CI
 | NUSW-NB15_features.csv | Column names and descriptions (the official file name has this spelling) | 4 KB | TODO |
 | UNSW_NB15_training-set.csv | Predefined training split | 14 MB | TODO |
 | UNSW_NB15_testing-set.csv | Predefined testing split | 15 MB | TODO |
+
+Check needed: the local `UNSW_NB15_training-set.csv` loaded with 67,688 rows (published size is 175,341), while the testing set loaded with 82,332 rows as expected. The training file may be incomplete and should be verified or re-downloaded before use.
 
 Note: the four full CSV files have no header row. Column names come from `NUSW-NB15_features.csv`.
 
