@@ -113,6 +113,71 @@ Observations:
 - A jointly trained model matches the within-dataset models on both test sets. A single model can serve both datasets when it has seen both. This does not show generalisation to an unseen dataset.
 - Multiclass cross-dataset models collapse to one class (DoS/DDoS for UNSW to CIC, mostly recon for CIC to UNSW), with macro recall close to chance.
 
+## Experiment D: few-shot adaptation
+
+Script: `src/experiment_d.py`, raw results in HDFS `/ids/results/experiment_d`. Random Forest (30 trees, depth 8), 5 features, log + standardise, 3 seeds (mean and standard deviation).
+
+Method: train on the balanced source training set plus a small number of labelled rows from the target dataset (a class-balanced sample of the target training set). Target rows are weighted so that their total weight equals the source total. Test on the same target test set as before. This is supervised adaptation, not zero-shot generalisation.
+
+UNSW-NB15 to CICIoT2023 (within-dataset reference: balanced accuracy 0.976):
+
+| Labelled CIC rows | Balanced accuracy | AUC |
+|---|---|---|
+| 0 | 0.484 +/- 0.036 | 0.513 +/- 0.393 |
+| about 95 | 0.953 +/- 0.006 | 0.981 +/- 0.001 |
+| about 550 | 0.967 +/- 0.004 | 0.984 +/- 0.001 |
+| about 2,137 | 0.971 +/- 0.001 | 0.986 +/- 0.001 |
+| about 10,524 | 0.973 +/- 0.001 | 0.988 +/- 0.000 |
+
+CICIoT2023 to UNSW-NB15 (within-dataset reference: balanced accuracy 0.788):
+
+| Labelled UNSW rows | Balanced accuracy | AUC |
+|---|---|---|
+| 0 | 0.476 +/- 0.002 | 0.598 +/- 0.089 |
+| about 94 | 0.754 +/- 0.014 | 0.820 +/- 0.047 |
+| about 509 | 0.756 +/- 0.011 | 0.887 +/- 0.006 |
+| about 2,047 | 0.774 +/- 0.017 | 0.908 +/- 0.011 |
+| about 10,364 | 0.771 +/- 0.011 | 0.895 +/- 0.006 |
+
+Observations:
+- About 100 labelled target rows lift balanced accuracy from chance to 0.953 (UNSW to CIC) and 0.754 (CIC to UNSW), which is 98% and 96% of the within-dataset reference. More labels give small further gains and plateau near the within-dataset level.
+- On UNSW-NB15 benign recall stays around 0.5 to 0.6 even with 10,000 labelled rows, matching the ceiling set by the 4.7% of rows whose five-feature vector appears with both labels.
+
+## Scalability (Stage F)
+
+Script `src/scale_test.py`, runner `scripts/run_scale.sh`, raw results `results/scale_results.jsonl`.
+
+Job: read CICIoT2023 CSV files, cast columns to numbers, remove duplicates and invalid rows, write Parquet; build the 5 shared features and write Parquet; balance, train a Random Forest (30 trees, depth 8) and evaluate on a 30% split.
+
+Environment: one laptop with 4 logical cores and 7.7 GiB RAM (2 GiB swap), Docker, Spark standalone with 1 worker (4 GB executor memory), HDFS with 1 datanode.
+
+Runtime against data size (4 cores):
+
+| Input files | Input size | Clean rows | Clean (s) | Features (s) | Train (s) | Total (s) | Rows per second |
+|---|---|---|---|---|---|---|---|
+| 1 | 147 MB | 544,929 | 68.0 | 4.1 | 32.5 | 104.5 | 5,200 |
+| 5 (best of 3 runs) | 739 MB | 2,207,344 | 157.3 | 4.9 | 57.5 | 219.7 | 10,000 |
+| 10 | 1,510 MB | 4,128,223 | 244.5 | 7.2 | 68.8 | 320.5 | 12,900 |
+| 15 | 2,364 MB | 6,144,389 | 374.3 | 9.1 | 95.7 | 479.1 | 12,800 |
+
+The model's balanced accuracy stayed between 0.973 and 0.980 across all sizes.
+
+Runtime against cores (5 files, 739 MB):
+
+| Cores | Total time (s) | Speedup against 1 core |
+|---|---|---|
+| 1 | 283.6 | 1.00 |
+| 2 | 207.7 | 1.37 |
+| 4 | 219.7, 383.8 and 1,100.6 (three runs) | 1.29 (best), 0.74 (median), 0.26 (worst) |
+
+Observations:
+- Duplicate removal and parsing dominate: cleaning takes 76% to 78% of the time at 10 and 15 files.
+- From 10 to 15 files the input grows 1.57 times and the runtime 1.49 times, so growth is close to linear.
+- Extrapolating the 12,800 rows per second to all 63 files (about 26 million clean rows) gives roughly 35 minutes. This is an estimate, not a measurement.
+- Going from 1 to 2 cores gives a 1.37 times speedup (68% efficiency). Four cores gave no reliable further gain: the three runs took between 220 and 1,101 s. A likely cause is memory pressure, since the machine has 7.7 GiB shared by the Spark executor, driver, HDFS, MongoDB and the operating system, and swap was in use. This explanation was not tested.
+
+Limitations of the scalability test: one machine and one worker, a single run for most configurations, and run-to-run variation large enough that the throughput figures are approximate. A multi-node cluster would be needed to show real horizontal scaling.
+
 ## Findings
 
 1. Within-dataset detection works with only the five shared features (RF balanced accuracy 0.98 on CICIoT2023, 0.79 to 0.81 on UNSW-NB15).
@@ -122,6 +187,8 @@ Observations:
 5. The best balanced accuracy in the ablation is 0.567 (CIC to UNSW, log + standardise, without `rate`), which is only slightly above chance.
 6. Training one model on both datasets removes the gap on the tests it has seen (balanced accuracy 0.974 and 0.783), so the datasets are compatible when the model sees both but not when it must transfer.
 7. The multiclass task on the shared classes fails the same way across datasets (macro recall 0.38 to 0.39 against a chance level of 0.33).
+8. A small labelled sample from the new environment fixes most of the problem. About 100 labelled target rows recover 98% (UNSW to CIC) and 96% (CIC to UNSW) of within-dataset balanced accuracy. The practical recommendation is an onboarding step for each new environment: label a few hundred rows and retrain, or pool data from several environments.
+9. The pipeline's runtime grows roughly linearly with data size (about 12,800 rows per second on one laptop), and doubling from 1 to 2 cores gives a 1.37 times speedup. Four cores gave no reliable gain on this machine, probably because of memory limits.
 
 ## Limitations
 
@@ -129,9 +196,11 @@ Observations:
 - Experiments A and B used one random seed per configuration. Experiment C repeats the key configurations over 3 seeds. Seeds vary only the CICIoT2023 split and the undersampling, so the standard deviations understate other sources of variation.
 - Only 5 features could be shared. CICIoT2023 features describe windows of packets, while UNSW-NB15 features describe whole flows.
 - The CICIoT2023 sample is 5 of 63 files (3.2 million raw rows).
+- Experiment D uses a class-balanced labelled target sample and a weighting scheme chosen by the authors. A real labelling effort would give a more imbalanced sample.
+- The CICIoT2023 test split is a random split of windows from the same captures, which probably flatters the UNSW to CIC adaptation results in Experiment D as well. The UNSW-NB15 results use the published split and are the safer estimate.
 - 4.7% of UNSW-NB15 rows have a feature vector that appears with both labels, which limits within-dataset accuracy on UNSW-NB15.
 
 ## Possible next experiments
 
-1. Few-shot adaptation: add a small labelled sample of the target dataset to the training data and measure how many labelled rows are needed to close the gap.
+1. Split CICIoT2023 by source file (or capture) instead of at random, to check that the within-dataset and adaptation results are not inflated by near-identical neighbouring windows.
 2. Aggregate UNSW-NB15 flows into packet windows (using source address and time in the raw files) so both datasets describe the same unit of observation.

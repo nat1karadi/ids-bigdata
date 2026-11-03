@@ -1,0 +1,8 @@
+{"n_files": 1, "cores": 4, "input_mb": 147, "rows_clean": 544929, "t_clean": 68.0, "t_features": 4.1, "t_train": 32.5, "t_total": 104.5, "bal_acc": 0.98}
+{"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 1048.9, "t_features": 5.1, "t_train": 46.6, "t_total": 1100.6, "bal_acc": 0.976}
+{"n_files": 10, "cores": 4, "input_mb": 1510, "rows_clean": 4128223, "t_clean": 244.5, "t_features": 7.2, "t_train": 68.8, "t_total": 320.5, "bal_acc": 0.974}
+{"n_files": 15, "cores": 4, "input_mb": 2364, "rows_clean": 6144389, "t_clean": 374.3, "t_features": 9.1, "t_train": 95.7, "t_total": 479.1, "bal_acc": 0.973}
+{"n_files": 5, "cores": 2, "input_mb": 739, "rows_clean": 2207344, "t_clean": 152.6, "t_features": 4.7, "t_train": 50.4, "t_total": 207.7, "bal_acc": 0.976}
+{"n_files": 5, "cores": 1, "input_mb": 739, "rows_clean": 2207344, "t_clean": 213.6, "t_features": 5.6, "t_train": 64.4, "t_total": 283.6, "bal_acc": 0.976}
+{"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 308.6, "t_features": 8.5, "t_train": 66.8, "t_total": 383.8, "bal_acc": 0.976}
+{"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 157.3, "t_features": 4.9, "t_train": 57.5, "t_total": 219.7, "bal_acc": 0.976}
