@@ -41,6 +41,6 @@ Output paths: `/ids/clean/ciciot2023`, `/ids/clean/unsw_train`, `/ids/clean/unsw
 
 ## Corrections and follow-up checks (1 November 2026)
 
-- The infinite-value filter in `clean_ciciot.py` did not remove every infinite `rate` value. 16 further CICIoT2023 rows with non-finite values were removed in `src/harmonise.py`, using a direct comparison filter.
+- The infinite-value filter in `clean_ciciot.py` skipped the CICIoT2023 `rate` column, because Spark read it as text (the CSV writes infinity as the word `inf`, which Spark's type inference does not accept as a number). The numeric-only filter therefore never saw it. 16 further CICIoT2023 rows with infinite `rate` were removed in `src/harmonise.py`, after `rate` was cast to a number. `clean_ciciot.py` was patched afterwards to cast all non-label columns to numbers before filtering.
 - Identical rows shared between the UNSW training and testing sets: 940. They were removed from the testing set in `src/harmonise.py`.
 - CICIoT2023 feature vectors (all 39 features) carrying more than one raw label: 82,420. Most are likely near-identical variants of the same attack type, which merge under the unified labels. After mapping to unified classes and keeping the 5 shared features, only 966 rows lie in vectors with both benign and attack labels.

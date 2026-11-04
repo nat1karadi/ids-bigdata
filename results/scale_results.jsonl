@@ -6,3 +6,6 @@
 {"n_files": 5, "cores": 1, "input_mb": 739, "rows_clean": 2207344, "t_clean": 213.6, "t_features": 5.6, "t_train": 64.4, "t_total": 283.6, "bal_acc": 0.976}
 {"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 308.6, "t_features": 8.5, "t_train": 66.8, "t_total": 383.8, "bal_acc": 0.976}
 {"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 157.3, "t_features": 4.9, "t_train": 57.5, "t_total": 219.7, "bal_acc": 0.976}
+{"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 325.8, "t_features": 11.3, "t_train": 107.5, "t_total": 444.6, "bal_acc": 0.976}
+{"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 302.9, "t_features": 10.3, "t_train": 92.1, "t_total": 405.2, "bal_acc": 0.976}
+{"n_files": 5, "cores": 4, "input_mb": 739, "rows_clean": 2207344, "t_clean": 255.2, "t_features": 10.7, "t_train": 77.9, "t_total": 343.8, "bal_acc": 0.976}

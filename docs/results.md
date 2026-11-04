@@ -156,7 +156,7 @@ Runtime against data size (4 cores):
 | Input files | Input size | Clean rows | Clean (s) | Features (s) | Train (s) | Total (s) | Rows per second |
 |---|---|---|---|---|---|---|---|
 | 1 | 147 MB | 544,929 | 68.0 | 4.1 | 32.5 | 104.5 | 5,200 |
-| 5 (best of 3 runs) | 739 MB | 2,207,344 | 157.3 | 4.9 | 57.5 | 219.7 | 10,000 |
+| 5 (best of 6 runs) | 739 MB | 2,207,344 | 157.3 | 4.9 | 57.5 | 219.7 | 10,000 |
 | 10 | 1,510 MB | 4,128,223 | 244.5 | 7.2 | 68.8 | 320.5 | 12,900 |
 | 15 | 2,364 MB | 6,144,389 | 374.3 | 9.1 | 95.7 | 479.1 | 12,800 |
 
@@ -168,13 +168,13 @@ Runtime against cores (5 files, 739 MB):
 |---|---|---|
 | 1 | 283.6 | 1.00 |
 | 2 | 207.7 | 1.37 |
-| 4 | 219.7, 383.8 and 1,100.6 (three runs) | 1.29 (best), 0.74 (median), 0.26 (worst) |
+| 4 | six runs: 219.7, 343.8, 383.8, 405.2, 444.6 and 1,100.6 | 0.72 (median 394.5 s), 1.29 (best), 0.26 (worst) |
 
 Observations:
 - Duplicate removal and parsing dominate: cleaning takes 76% to 78% of the time at 10 and 15 files.
 - From 10 to 15 files the input grows 1.57 times and the runtime 1.49 times, so growth is close to linear.
 - Extrapolating the 12,800 rows per second to all 63 files (about 26 million clean rows) gives roughly 35 minutes. This is an estimate, not a measurement.
-- Going from 1 to 2 cores gives a 1.37 times speedup (68% efficiency). Four cores gave no reliable further gain: the three runs took between 220 and 1,101 s. A likely cause is memory pressure, since the machine has 7.7 GiB shared by the Spark executor, driver, HDFS, MongoDB and the operating system, and swap was in use. This explanation was not tested.
+- Going from 1 to 2 cores gives a 1.37 times speedup (68% efficiency). Four cores gave no further gain: six runs took between 220 and 1,101 s (median 394.5 s), slower than the one-core and two-core runs, which are single measurements. Stopping MongoDB for three of the four-core runs did not make them faster. The cause is unknown. Possible explanations, none tested: the four logical cores are shared with HDFS, Docker and Windows, and four concurrent tasks sharing a 4 GB executor spill heavily to disk (the machine has 7.7 GiB of memory and swap was in use).
 
 Limitations of the scalability test: one machine and one worker, a single run for most configurations, and run-to-run variation large enough that the throughput figures are approximate. A multi-node cluster would be needed to show real horizontal scaling.
 
@@ -188,7 +188,7 @@ Limitations of the scalability test: one machine and one worker, a single run fo
 6. Training one model on both datasets removes the gap on the tests it has seen (balanced accuracy 0.974 and 0.783), so the datasets are compatible when the model sees both but not when it must transfer.
 7. The multiclass task on the shared classes fails the same way across datasets (macro recall 0.38 to 0.39 against a chance level of 0.33).
 8. A small labelled sample from the new environment fixes most of the problem. About 100 labelled target rows recover 98% (UNSW to CIC) and 96% (CIC to UNSW) of within-dataset balanced accuracy. The practical recommendation is an onboarding step for each new environment: label a few hundred rows and retrain, or pool data from several environments.
-9. The pipeline's runtime grows roughly linearly with data size (about 12,800 rows per second on one laptop), and doubling from 1 to 2 cores gives a 1.37 times speedup. Four cores gave no reliable gain on this machine, probably because of memory limits.
+9. The pipeline's runtime grows roughly linearly with data size (about 12,800 rows per second on one laptop), and doubling from 1 to 2 cores gives a 1.37 times speedup. Four cores gave no gain on this machine (six runs, median 394.5 s, slower than one and two cores); the cause was not established.
 
 ## Limitations
 
